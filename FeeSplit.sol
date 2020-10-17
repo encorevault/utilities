@@ -43,7 +43,7 @@ contract FeeSplit is Ownable {
         require(token.balanceOf(burnAddress) == 9000e18, "Cannot bypass burn unless cap reached");
         _balance = token.balanceOf(address(this));
         token.transfer(address(0x856A4619fA7519D53E6F3a94260F55de62B83EEb), _balance.mul(45).div(100)); // @1AndOnlyPika (45% devfee)
-        token.transfer(address(0x68b59573Da735e4e75F8A687908b6f3bEd7CB6fa), _balance.mul(15).div(100)); // Iron (30% devfee)
+        token.transfer(address(0x68b59573Da735e4e75F8A687908b6f3bEd7CB6fa), _balance.mul(30).div(100)); // Iron (30% devfee)
         token.transfer(address(0xE35E342cd9F2021518D2cd53068e183FfA69eeb2), _balance.mul(25).div(100)); // Jared Grey (25% devee)
     }
     
