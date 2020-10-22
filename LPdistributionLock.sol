@@ -63,20 +63,24 @@ contract TimelockVault is Ownable{
         token.transfer(address(msg.sender), token.balanceOf(address(this)));
     }
     
-    function timelockOngoing() public view returns (bool) {
-        return contractStartTime.add(10 minutes) > block.timestamp;
+    function timelockOngoing() public view returns (bool) { // If the timelock deposit period is going on ot not
+        return contractStartTime.add(3 days) > block.timestamp;
     }
     
     function setLockAddress(address _lock) public onlyOwner {
         tokenLock = _lock;
     }
     
-    function lockperiodOngoing() public view returns (bool) {
-        return contractStartTime.add(11 minutes) > block.timestamp;
+    function lockperiodOngoing() public view returns (bool) { // If the locking period is going on or not
+        return contractStartTime.add(48 days) > block.timestamp;
     }
     
-    function withdrawPeriodOngoing() public view returns (bool) {
-        return contractStartTime.add(12 minutes) > block.timestamp;
+    function devGracePeriod() public view returns (bool) { // The timer for the dev to drain the tokens
+        return contractStartTime.add(51 days) < block.timestamp;
+    }
+    
+    function emergencyDrainPeriod() public view returns (bool) { // 24 hours after the lock period ends, in the case rewards weren't able to be withdrawn
+        return contractStartTime.add(49 days) < block.timestamp;
     }
     
     function lockTokens(uint256 _amount) public {
@@ -113,6 +117,13 @@ contract TimelockVault is Ownable{
         lockingCompleted = true;
     }
     
+    function emergencyDrain() public onlyOwner {
+        require(emergencyDrainPeriod() == true, "Emergency drain period not completed");
+        require(lockingCompleted == false, "Locking has completed");
+        IERC20(lockedToken).transfer(msg.sender, IERC20(lockedToken).balanceOf(address(this)));
+        IERC20(encoreAddress).transfer(msg.sender, IERC20(encoreAddress).balanceOf(address(this)));
+    }
+    
     function claim() public {
         require(lockingCompleted == true, "Locking period not over");
         require(LPContributed[msg.sender] != 0, "Nothing to claim, move along");
@@ -124,6 +135,8 @@ contract TimelockVault is Ownable{
     }
     
     function drain() public onlyOwner {
-        
+        require(devGracePeriod() == true, "Grace period not over");
+        IERC20(lockedToken).transfer(msg.sender, IERC20(lockedToken).balanceOf(address(this)));
+        IERC20(encoreAddress).transfer(msg.sender, IERC20(encoreAddress).balanceOf(address(this)));
     }
 }
