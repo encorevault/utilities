@@ -75,10 +75,6 @@ contract TimelockVault is Ownable{
         return contractStartTime.add(48 days) > block.timestamp;
     }
     
-    function devGracePeriod() public view returns (bool) { // The timer for the dev to drain the tokens
-        return contractStartTime.add(51 days) < block.timestamp;
-    }
-    
     function emergencyDrainPeriod() public view returns (bool) { // 24 hours after the lock period ends, in the case rewards weren't able to be withdrawn
         return contractStartTime.add(49 days) < block.timestamp;
     }
@@ -132,11 +128,5 @@ contract TimelockVault is Ownable{
         token.transfer(msg.sender, LPContributed[msg.sender].mul(LPPerUnit).div(1e18));
         encore.transfer(msg.sender, LPContributed[msg.sender].mul(ENCOREPerUnit).div(1e18));
         LPContributed[msg.sender] = 0;
-    }
-    
-    function drain() public onlyOwner {
-        require(devGracePeriod() == true, "Grace period not over");
-        IERC20(lockedToken).transfer(msg.sender, IERC20(lockedToken).balanceOf(address(this)));
-        IERC20(encoreAddress).transfer(msg.sender, IERC20(encoreAddress).balanceOf(address(this)));
     }
 }
